@@ -1,5 +1,5 @@
 {
-  "name": "dholmes/bga-workbench",
+  "name": "micahstairs/bga-workbench",
   "version": "0.2.1",
   "type": "library",
   "description": "BoardGameArena Workbench",
@@ -9,6 +9,10 @@
     {
       "name": "Daniel Holmes",
       "email": "daniel@danielholmes.org"
+    },
+    {
+      "name": "Micah Stairs",
+      "email": "micah.stairs@gmail.com"
     }
   ],
   "autoload": {
