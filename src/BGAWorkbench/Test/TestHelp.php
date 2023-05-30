@@ -13,7 +13,7 @@ trait TestHelp
      */
     private $table;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         $this->table = $this->createGameTableInstanceBuilder()
             ->build()
@@ -25,7 +25,7 @@ trait TestHelp
      */
     abstract protected function createGameTableInstanceBuilder() : TableInstanceBuilder;
 
-    protected function tearDown()
+    protected function tearDown(): void
     {
         if ($this->table !== null) {
             $this->table->dropDatabaseAndDisconnect();
