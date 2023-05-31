@@ -55,7 +55,7 @@ class DatabaseInstance
         $this->serverConnectionParams = [
             'user' => $username,
             'password' => $password,
-            'host' => 'localhost',
+            'host' => '127.0.0.1',
             'driver' => 'pdo_mysql'
         ];
         $this->isCreated = false;
