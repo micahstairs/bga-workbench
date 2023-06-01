@@ -106,7 +106,11 @@ abstract class Table extends APP_GameClass
         }
         $id = $this->gameStateLabelsToIds[$label];
 
-        self::getUniqueValueFromDB("SELECT global_value FROM global WHERE global_id = {$id}");
+        if (self::getUniqueValueFromDB("SELECT COUNT(*) FROM global WHERE global_id = {$id}") == 0) {
+            throw new Exception("The game state value {$label} has not been initialized");
+        }
+
+        return self::getUniqueValueFromDB("SELECT global_value FROM global WHERE global_id = {$id}");
     }
 
     private function getStatTypeId($targetName)
