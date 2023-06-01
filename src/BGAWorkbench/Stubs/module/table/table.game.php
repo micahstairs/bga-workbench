@@ -96,7 +96,7 @@ abstract class Table extends APP_GameClass
         }
         $id = $this->gameStateLabelsToIds[$label];
 
-        self::DbQuery("UPDATE global SET global_value = {$value} WHERE global_id = {$id}");
+        self::DbQuery("INSERT INTO global (global_id, global_value) VALUES ({$id}, {$value})");
     }
 
     public function getGameStateValue($label)

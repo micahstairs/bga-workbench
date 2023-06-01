@@ -129,6 +129,14 @@ class TableInstance
     /**
      * @return self
      */
+    public function seedDatabaseBeforeSetupNewGame()
+    {
+        return $this;
+    }
+
+    /**
+     * @return self
+     */
     public function setupNewGame()
     {
         if ($this->isSetup) {
@@ -141,6 +149,7 @@ class TableInstance
         $gameClass = new \ReflectionClass($game);
         call_user_func([$gameClass->getName(), 'stubGameInfos'], $this->project->getGameInfos());
         call_user_func([$gameClass->getName(), 'setDbConnection'], $this->database->getOrCreateConnection());
+        $this->seedDatabaseBeforeSetupNewGame();
         Utils::callProtectedMethod($game, 'setupNewGame', $this->createPlayersById(), $this->options);
 
         if (!empty($this->playerAmendments)) {
