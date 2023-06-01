@@ -38,6 +38,11 @@ class TableInstance
     private $options;
 
     /**
+     * @var array
+     */
+    private $globalGameStates;
+
+    /**
      * @var DatabaseInstance
      */
     private $database;
@@ -53,13 +58,14 @@ class TableInstance
      * @param array $playerAmendments
      * @param array $options
      */
-    public function __construct(WorkbenchProjectConfig $config, array $players, array $playerAmendments, array $options)
+    public function __construct(WorkbenchProjectConfig $config, array $players, array $playerAmendments, array $options, array $globalGameStates)
     {
         $this->config = $config;
         $this->project = $config->loadProject();
         $this->players = $players;
         $this->playerAmendments = $playerAmendments;
         $this->options = $options;
+        $this->globalGameStates = $globalGameStates;
         $this->database = new DatabaseInstance(
             $config->getTestDbNamePrefix() . substr(md5(time()), 0, 10),
             $config->getTestDbUsername(),
@@ -127,10 +133,14 @@ class TableInstance
     }
 
     /**
+     * @param Table $game
      * @return self
      */
-    public function seedDatabaseBeforeSetupNewGame()
+    public function seedDatabaseBeforeSetupNewGame($game)
     {
+        foreach ($this->globalGameStates as $label => $value) {
+            $game->setGameStateInitialValue($label, $value);
+        }
         return $this;
     }
 
@@ -149,7 +159,7 @@ class TableInstance
         $gameClass = new \ReflectionClass($game);
         call_user_func([$gameClass->getName(), 'stubGameInfos'], $this->project->getGameInfos());
         call_user_func([$gameClass->getName(), 'setDbConnection'], $this->database->getOrCreateConnection());
-        $this->seedDatabaseBeforeSetupNewGame();
+        $this->seedDatabaseBeforeSetupNewGame($game);
         Utils::callProtectedMethod($game, 'setupNewGame', $this->createPlayersById(), $this->options);
 
         if (!empty($this->playerAmendments)) {

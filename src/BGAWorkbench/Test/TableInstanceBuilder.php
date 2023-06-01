@@ -30,6 +30,11 @@ class TableInstanceBuilder
     private $options;
 
     /**
+     * @var array
+     */
+    private $globalGameStates;
+
+    /**
      * @var Generator
      */
     private $faker;
@@ -43,6 +48,7 @@ class TableInstanceBuilder
         $this->options = [];
         $this->faker = Factory::create();
         $this->playerAmendments = [];
+        $this->globalGameStates = [];
     }
 
     /**
@@ -127,11 +133,21 @@ class TableInstanceBuilder
     }
 
     /**
+     * @param array $globalGameStates
+     * @return self
+     */
+    public function overrideGlobalsPreSetup(array $globalGameStates)
+    {
+        $this->globalGameStates = $globalGameStates;
+        return $this;
+    }
+
+    /**
      * @return TableInstance
      */
     public function build()
     {
-        return new TableInstance($this->config, $this->players, $this->playerAmendments, $this->options);
+        return new TableInstance($this->config, $this->players, $this->playerAmendments, $this->options, $this->globalGameStates);
     }
 
     /**
