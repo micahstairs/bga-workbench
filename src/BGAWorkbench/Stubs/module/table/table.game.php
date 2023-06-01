@@ -56,10 +56,6 @@ abstract class Table extends APP_GameClass
 
     abstract protected function setupNewGame($players, $options = array());
 
-    public function initGameStateLabels($labels)
-    {
-    }
-
     public function reattributeColorsBasedOnPreferences($players, $colors)
     {
     }
@@ -77,16 +73,40 @@ abstract class Table extends APP_GameClass
         return true;
     }
 
-    private $gameStateValues = [];
+    public $gameStateLabelsToIds = [];
+
+    public function initGameStateLabels($labels)
+    {
+        foreach ($labels as $label => $id) {
+            if (!is_string($label)) {
+                throw new InvalidArgumentException('All labels must be a string');
+            }
+            $this->gameStateLabelsToIds[$label] = $id;
+        }
+    }
 
     public function setGameStateInitialValue($label, $value)
     {
-        $this->gameStateValues[$label] = $value;
+        if (!is_int($value)) {
+            throw new InvalidArgumentException('The value must be an integer');
+        }
+
+        if (!array_key_exists($label, $this->gameStateLabelsToIds)) {
+            throw new InvalidArgumentException(sprintf('The label %s was not defined by initGameStateLabels', $label));
+        }
+        $id = $this->gameStateLabelsToIds[$label];
+
+        self::DbQuery("UPDATE global SET global_value = {$value} WHERE global_id = {$id}");
     }
 
     public function getGameStateValue($label)
     {
-        return $this->gameStateValues[$label];
+        if (!array_key_exists($label, $this->gameStateLabelsToIds)) {
+            throw new InvalidArgumentException(sprintf('The label %s was not defined by initGameStateLabels', $label));
+        }
+        $id = $this->gameStateLabelsToIds[$label];
+
+        self::getUniqueValueFromDB("SELECT global_value FROM global WHERE global_id = {$id}");
     }
 
     private function getStatTypeId($targetName)
