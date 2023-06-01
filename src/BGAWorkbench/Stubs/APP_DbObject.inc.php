@@ -76,7 +76,15 @@ class APP_DbObject extends APP_Object
      */
     protected static function getObjectListFromDB($sql, $bUniqueValue = false)
     {
-        return self::getDbConnection()->fetchAll($sql);
+        $rows = self::getDbConnection()->fetchAll($sql);
+        if ($bUniqueValue) {
+            $flatRows = [];
+            foreach ($rows as $row) {
+                $flatRows = array_merge($flatRows, array_values($row));
+            }
+            $rows = $flatRows;
+        }
+        return $rows;
     }
 
     /**
