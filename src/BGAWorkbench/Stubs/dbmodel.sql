@@ -31,3 +31,10 @@ CREATE TABLE `stats` (
   UNIQUE KEY `stats_table_id` (`stats_type`,`stats_player_id`),
   KEY `stats_player_id` (`stats_player_id`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
+
+
+CREATE TABLE `global` (
+  `global_id` int(10) unsigned NOT NULL,
+  `global_value` int(10) unsigned NOT NULL,
+  PRIMARY KEY (`global_id`)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
