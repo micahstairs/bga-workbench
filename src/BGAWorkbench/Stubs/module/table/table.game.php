@@ -103,6 +103,24 @@ abstract class Table extends APP_GameClass
         self::DbQuery("INSERT INTO global (global_id, global_value) VALUES ({$id}, {$value})");
     }
 
+    public function setGameStateValue($label, $value)
+    {
+        if (!is_int($value)) {
+            throw new InvalidArgumentException('The value must be an integer');
+        }
+
+        if (!array_key_exists($label, $this->gameStateLabelsToIds)) {
+            throw new InvalidArgumentException(sprintf('The label %s was not defined by initGameStateLabels', $label));
+        }
+        $id = $this->gameStateLabelsToIds[$label];
+
+        if (self::getUniqueValueFromDB("SELECT COUNT(*) FROM global WHERE global_id = {$id}") === 0) {
+            throw new Exception("The game state value {$label} has not been initialized");
+        }
+
+        self::DbQuery("UPDATE global SET global_value = {$value} WHERE global_id = {$id}");
+    }
+
     public function getGameStateValue($label)
     {
         if (!array_key_exists($label, $this->gameStateLabelsToIds)) {
