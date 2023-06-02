@@ -33,6 +33,11 @@ class Gamestate
         return false;
     }
 
+    public function state(): Array
+    {
+        return ['name' => ''];
+    }
+
     public function nextState($action = '')
     {
     }
