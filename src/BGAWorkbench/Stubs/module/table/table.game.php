@@ -56,6 +56,10 @@ abstract class Table extends APP_GameClass
 
     abstract protected function setupNewGame($players, $options = array());
 
+    public function getBgaEnvironment(): string {
+        return 'studio';
+    }
+
     public function reattributeColorsBasedOnPreferences($players, $colors)
     {
     }
