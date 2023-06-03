@@ -112,8 +112,8 @@ abstract class Table extends APP_GameClass
 
     public function setGameStateInitialValue($label, $value)
     {
-        if (!is_int($value)) {
-            throw new InvalidArgumentException('The value must be an integer');
+        if (!is_numeric($value)) {
+            throw new InvalidArgumentException('The value must be numeric');
         }
 
         if (!array_key_exists($label, $this->gameStateLabelsToIds)) {
@@ -125,8 +125,8 @@ abstract class Table extends APP_GameClass
 
     public function setGameStateValue($label, $value)
     {
-        if (!is_int($value)) {
-            throw new InvalidArgumentException('The value must be an integer');
+        if (!is_numeric($value)) {
+            throw new InvalidArgumentException('The value must be numeric');
         }
 
         if (!array_key_exists($label, $this->gameStateLabelsToIds)) {
