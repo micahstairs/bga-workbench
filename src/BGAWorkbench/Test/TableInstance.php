@@ -52,6 +52,9 @@ class TableInstance
      */
     private $isSetup;
 
+    /** Only populated after the game is created */
+    private $table;
+
     /**
      * @param WorkbenchProjectConfig $config
      * @param array $players
@@ -155,12 +158,12 @@ class TableInstance
 
         $this->isSetup = true;
 
-        $game = $this->createGameInstanceWithNoBoundedPlayer();
-        $gameClass = new \ReflectionClass($game);
+        $this->table = $this->createGameInstanceWithNoBoundedPlayer();
+        $gameClass = new \ReflectionClass($this->table);
         call_user_func([$gameClass->getName(), 'stubGameInfos'], $this->project->getGameInfos());
         call_user_func([$gameClass->getName(), 'setDbConnection'], $this->database->getOrCreateConnection());
-        $this->seedDatabaseBeforeSetupNewGame($game);
-        Utils::callProtectedMethod($game, 'setupNewGame', $this->createPlayersById(), $this->options);
+        $this->seedDatabaseBeforeSetupNewGame($this->table);
+        Utils::callProtectedMethod($this->table, 'setupNewGame', $this->createPlayersById(), $this->options);
 
         if (!empty($this->playerAmendments)) {
             $rawPlayerNos = $this->getDbConnection()->fetchAll('SELECT player_no, player_id FROM player');
@@ -270,5 +273,13 @@ class TableInstance
             $this->players
         );
         return array_combine($ids, $this->players);
+    }
+
+    /**
+     * @return Table
+     */
+    public function getTable()
+    {
+        return $this->table;
     }
 }
