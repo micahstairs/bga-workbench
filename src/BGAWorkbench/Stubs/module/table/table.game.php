@@ -24,6 +24,16 @@ class APP_GameClass extends APP_DbObject
 
 class Gamestate
 {
+    /**
+     * @var Table
+     */
+    private $table;
+
+    public function __construct($table)
+    {
+        $this->table = $table;
+    }
+
     public function setAllPlayersMultiactive()
     {
     }
@@ -33,17 +43,18 @@ class Gamestate
         return false;
     }
 
+    public function nextState($action = '')
+    {
+    }
+
     public function state(): Array
     {
         return ['name' => ''];
     }
 
-    public function nextState($action = '')
-    {
-    }
-
     public function changeActivePlayer($player_id)
     {
+        $this->table->stubActivePlayerId($player_id);
     }
 }
 
@@ -56,7 +67,7 @@ abstract class Table extends APP_GameClass
 
     public function __construct()
     {
-        $this->gamestate = new Gamestate();
+        $this->gamestate = new Gamestate($this);
     }
 
     abstract protected function setupNewGame($players, $options = array());
@@ -109,7 +120,6 @@ abstract class Table extends APP_GameClass
             throw new InvalidArgumentException(sprintf('The label %s was not defined by initGameStateLabels', $label));
         }
         $id = $this->gameStateLabelsToIds[$label];
-
         self::DbQuery("INSERT INTO global (global_id, global_value) VALUES ({$id}, {$value})");
     }
 
@@ -139,7 +149,7 @@ abstract class Table extends APP_GameClass
         $id = $this->gameStateLabelsToIds[$label];
 
         if (self::getUniqueValueFromDB("SELECT COUNT(*) FROM global WHERE global_id = {$id}") == 0) {
-            throw new Exception("The game state value {$label} has not been initialized");
+            throw new Exception("The game state value {$label} (id={$id}) has not been initialized");
         }
 
         return self::getUniqueValueFromDB("SELECT global_value FROM global WHERE global_id = {$id}");
