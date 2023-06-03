@@ -61,6 +61,11 @@ abstract class Table extends APP_GameClass
 
     abstract protected function setupNewGame($players, $options = array());
 
+    public function _(string $text): string
+    {
+        return $text;
+    }
+
     public function getBgaEnvironment(): string {
         return 'studio';
     }
