@@ -35,6 +35,6 @@ CREATE TABLE `stats` (
 
 CREATE TABLE `global` (
   `global_id` int(10) unsigned NOT NULL,
-  `global_value` int(10) unsigned NOT NULL,
+  `global_value` int(10) signed NOT NULL,
   PRIMARY KEY (`global_id`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
