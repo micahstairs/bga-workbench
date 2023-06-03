@@ -77,6 +77,10 @@ abstract class Table extends APP_GameClass
         return $text;
     }
 
+    public function trace(string $text): void
+    {
+    }
+
     public function getBgaEnvironment(): string {
         return 'studio';
     }
