@@ -159,6 +159,8 @@ class TableInstance
         $this->seedDatabaseBeforeSetupNewGame($this->table);
         Utils::callProtectedMethod($this->table, 'setupNewGame', $this->createPlayersById(), $this->options);
 
+        $this->table->gamestate->nextState($this->table->getStateForId(2)['name']);
+
         return $this;
     }
 

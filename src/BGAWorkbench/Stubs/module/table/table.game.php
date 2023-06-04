@@ -430,6 +430,18 @@ abstract class Table extends APP_GameClass
     }
 
     /**
+     * @param int $id
+     * @return array
+     */
+    public static function getStateForId(string $id)
+    {
+        if (!isset(self::$statesById[$id])) {
+            throw new Exception("State not found: ". $id. ". Valid state IDs: ". implode(', ', array_values(self::$statesLabelToId)). ".");
+        }
+        return self::$statesById[$id];
+    }
+
+    /**
      * @return array
      */
     public function loadPlayersBasicInfos()
