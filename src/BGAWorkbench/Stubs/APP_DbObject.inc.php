@@ -112,7 +112,7 @@ class APP_DbObject extends APP_Object
         $rows = self::getDbConnection()->fetchArray($sql);
         // NOTE: Not sure why this is necessary, but it is
         if (!is_array($rows)) {
-            return $rows;
+            return null;
         }
         if (count($rows) !== 1) {
             throw new \RuntimeException('Non unique result');

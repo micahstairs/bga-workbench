@@ -99,6 +99,7 @@ abstract class Table extends APP_GameClass
 
     public function checkAction($actionName, $bThrowException = true)
     {
+        // TODO: Implement checkAction() method.
         return true;
     }
 
