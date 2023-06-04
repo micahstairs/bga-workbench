@@ -47,7 +47,6 @@ class TableInstanceBuilder
         $this->config = $config;
         $this->options = [];
         $this->faker = Factory::create();
-        $this->playerAmendments = [];
         $this->globalGameStates = [];
     }
 
@@ -74,16 +73,6 @@ class TableInstanceBuilder
                 return array_merge($defaultPlayer, $player);
             }
         );
-        return $this;
-    }
-
-    /**
-     * @param array $playerAmendments
-     * @return self
-     */
-    public function overridePlayersPostSetup(array $playerAmendments)
-    {
-        $this->playerAmendments = $playerAmendments;
         return $this;
     }
 
@@ -147,7 +136,7 @@ class TableInstanceBuilder
      */
     public function build()
     {
-        return new TableInstance($this->config, $this->players, $this->playerAmendments, $this->options, $this->globalGameStates);
+        return new TableInstance($this->config, $this->players, $this->options, $this->globalGameStates);
     }
 
     /**

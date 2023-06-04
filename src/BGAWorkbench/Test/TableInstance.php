@@ -30,11 +30,6 @@ class TableInstance
     /**
      * @var array
      */
-    private $playerAmendments;
-
-    /**
-     * @var array
-     */
     private $options;
 
     /**
@@ -58,15 +53,13 @@ class TableInstance
     /**
      * @param WorkbenchProjectConfig $config
      * @param array $players
-     * @param array $playerAmendments
      * @param array $options
      */
-    public function __construct(WorkbenchProjectConfig $config, array $players, array $playerAmendments, array $options, array $globalGameStates)
+    public function __construct(WorkbenchProjectConfig $config, array $players, array $options, array $globalGameStates)
     {
         $this->config = $config;
         $this->project = $config->loadProject();
         $this->players = $players;
-        $this->playerAmendments = $playerAmendments;
         $this->options = $options;
         $this->globalGameStates = $globalGameStates;
         $this->database = new DatabaseInstance(
@@ -164,31 +157,6 @@ class TableInstance
         call_user_func([$gameClass->getName(), 'setDbConnection'], $this->database->getOrCreateConnection());
         $this->seedDatabaseBeforeSetupNewGame($this->table);
         Utils::callProtectedMethod($this->table, 'setupNewGame', $this->createPlayersById(), $this->options);
-
-        if (!empty($this->playerAmendments)) {
-            $rawPlayerNos = $this->getDbConnection()->fetchAll('SELECT player_no, player_id FROM player');
-            $playerNos = [];
-            foreach ($rawPlayerNos as $rawPlayerNo) {
-                $playerNos[$rawPlayerNo['player_id']] = (int) $rawPlayerNo['player_no'];
-            }
-
-            $this->getDbConnection()->transactional(function(Connection $db) use ($playerNos) {
-                $db->executeUpdate('UPDATE player SET player_no = player_no + 10000');
-
-                foreach ($this->playerAmendments as $id => $player) {
-                    $playerData = array_merge(['player_no' => $playerNos[$id]], $player);
-                    $numAffected = $db->update('player', $playerData, ['player_id' => $id]);
-                    if ($numAffected === 0) {
-                        $found = (boolean) $db->executeQuery(
-                            "SELECT COUNT(player_id) FROM player WHERE player_id = {$id}"
-                        );
-                        if (!$found) {
-                            throw new \RuntimeException("No player with id {$id} found to override");
-                        }
-                    }
-                }
-            });
-        }
 
         return $this;
     }
