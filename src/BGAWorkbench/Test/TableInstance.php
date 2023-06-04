@@ -129,7 +129,7 @@ class TableInstance
     }
 
     /**
-     * @param Table $game
+     * @param \Table $game
      * @return self
      */
     public function seedDatabaseBeforeSetupNewGame($game)
@@ -152,6 +152,7 @@ class TableInstance
         $this->isSetup = true;
 
         $this->table = $this->createGameInstanceWithNoBoundedPlayer();
+        $this->table->stubStates($this->project->getStates());
         $gameClass = new \ReflectionClass($this->table);
         call_user_func([$gameClass->getName(), 'stubGameInfos'], $this->project->getGameInfos());
         call_user_func([$gameClass->getName(), 'setDbConnection'], $this->database->getOrCreateConnection());

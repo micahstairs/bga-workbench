@@ -29,6 +29,11 @@ class Gamestate
      */
     private $table;
 
+    /**
+     * @var string
+     */
+    private $currentStateId = 'gameSetup';
+
     public function __construct($table)
     {
         $this->table = $table;
@@ -49,7 +54,7 @@ class Gamestate
 
     public function state(): Array
     {
-        return ['name' => ''];
+        return $this->table->getStateForLabel($this->currentStateId);
     }
 
     public function changeActivePlayer($player_id)
@@ -381,6 +386,47 @@ abstract class Table extends APP_GameClass
     public static function getGameInfosForGame($name)
     {
         return self::$stubbedGameInfos;
+    }
+
+    /**
+     * @var array|null
+     */
+    private static $statesById = null;
+
+    /**
+     * @var array|null
+     */
+    private static $statesLabelToId = null;
+
+    /**
+     * @param array $states
+     */
+    public static function stubStates(array $states)
+    {
+        self::$statesById = $states;
+        self::$statesLabelToId = array_combine(
+            array_map(
+                function ($stateId, $state) {
+                    return $state['name'];
+                },
+                array_keys($states),
+                $states
+            ),
+            array_keys($states)
+        );
+    }
+
+    /**
+     * @param string $label
+     * @return array
+     */
+    public static function getStateForLabel(string $label)
+    {
+        if (!isset(self::$statesLabelToId[$label])) {
+            throw new Exception("State not found: ". $label. ". Valid states: ". implode(', ', array_keys(self::$statesLabelToId)). ".");
+        }
+
+        return self::$statesById[self::$statesLabelToId[$label]];
     }
 
     /**
