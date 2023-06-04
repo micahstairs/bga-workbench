@@ -70,9 +70,9 @@ class TableInstance
         $this->options = $options;
         $this->globalGameStates = $globalGameStates;
         $this->database = new DatabaseInstance(
-            $config->getTestDbNamePrefix() . substr(md5(time()), 0, 10),
-            $config->getTestDbUsername(),
-            $config->getTestDbPassword(),
+            getenv('DB_NAME_PREFIX') . substr(md5(time()), 0, 10),
+            getenv('DB_USERNAME'),
+            "",
             [
                 FileUtils::joinPath(__DIR__, '..', 'Stubs', 'dbmodel.sql'),
                 $this->project->getDbModelSqlFile()->getPathname()
