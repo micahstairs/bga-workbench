@@ -132,7 +132,7 @@ class TableInstance
      * @param \Table $game
      * @return self
      */
-    public function seedDatabaseBeforeSetupNewGame($game)
+    private function seedDatabaseBeforeSetup($game)
     {
         foreach ($this->globalGameStates as $label => $value) {
             $game->setGameStateInitialValue($label, $value);
@@ -156,12 +156,46 @@ class TableInstance
         $gameClass = new \ReflectionClass($this->table);
         call_user_func([$gameClass->getName(), 'stubGameInfos'], $this->project->getGameInfos());
         call_user_func([$gameClass->getName(), 'setDbConnection'], $this->database->getOrCreateConnection());
-        $this->seedDatabaseBeforeSetupNewGame($this->table);
+        $this->seedDatabaseBeforeSetup($this->table);
         Utils::callProtectedMethod($this->table, 'setupNewGame', $this->createPlayersById(), $this->options);
+        $this->table->persistGameStateLabels();
 
         $this->table->gamestate->nextState($this->table->getStateForId(2)['name']);
+        $this->advanceGame();
 
         return $this;
+    }
+
+    public function advanceGame()
+    {
+        while (true) {
+            $state = $this->table->gamestate->state();
+            $nextTransition = $this->table->getTransitionName();
+
+            $nextStateId = '';
+            $numPossibleTransitions = count($state['transitions']);
+            if ($numPossibleTransitions === 1) {
+                $nextStateId = array_values($state['transitions'])[0];
+            } else {
+                for ($i = 0; $i < $numPossibleTransitions; $i++) {
+                    $transition = array_keys($state['transitions'])[$i];
+                    if ($transition === $nextTransition) {
+                        $nextStateId = array_values($state['transitions'])[$i];
+                    }
+                }   
+            }
+
+            $nextState = $this->table->getStateForId($nextStateId);
+            $nextStateName = $nextState['name'];
+            error_log("INFO: Advancing to state {$nextStateName}");
+            $this->table->setStateId($nextStateId);
+
+            if ($nextState['type'] !== 'game' ) {
+                break;
+            }
+            
+            $this->table->{$nextState['action']}();
+        }
     }
 
     /**

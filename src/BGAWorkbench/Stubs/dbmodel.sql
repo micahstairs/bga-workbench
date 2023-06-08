@@ -23,13 +23,12 @@ CREATE TABLE `player` (
 
 
 CREATE TABLE `stats` (
-  `stats_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `stats_type` smallint(5) unsigned NOT NULL,
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `stats_id` smallint(5) unsigned NOT NULL,
+  `stats_type` varchar(8) NOT NULL COMMENT 'player or table',
   `stats_player_id` int(10) unsigned DEFAULT NULL COMMENT 'if NULL: stat global to table',
   `stats_value` float NOT NULL,
-  PRIMARY KEY (`stats_id`),
-  UNIQUE KEY `stats_table_id` (`stats_type`,`stats_player_id`),
-  KEY `stats_player_id` (`stats_player_id`)
+  UNIQUE KEY (`id`, `stats_id`, `stats_type`, `stats_player_id`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
 
 
@@ -38,3 +37,13 @@ CREATE TABLE `global` (
   `global_value` int(10) signed NOT NULL,
   PRIMARY KEY (`global_id`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
+
+CREATE TABLE `bga_workbench` (
+  `key` varchar(64) NOT NULL,
+  `subkey` varchar(64),
+  `value` varchar(64),
+  PRIMARY KEY (`key`, `subkey`)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
+
+INSERT INTO `bga_workbench` (`key`, `subkey`, `value`) VALUES ('state_machine', 'current_state_id', '1');
+INSERT INTO `bga_workbench` (`key`, `subkey`, `value`) VALUES ('state_machine', 'next_transition', '');

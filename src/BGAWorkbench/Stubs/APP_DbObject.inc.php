@@ -23,6 +23,9 @@ class APP_DbObject extends APP_Object
         }
         $miConn = new mysqli($host, $conn->getUsername(), $conn->getPassword(), $conn->getDatabase());
         $result = $miConn->query($sql);
+        if (!$result) {
+            throw new RuntimeException("QUERY FAILED: ". $miConn->error . " (query: $sql)");
+        }
         self::$affectedRows = $miConn->affected_rows;
         return $result;
     }

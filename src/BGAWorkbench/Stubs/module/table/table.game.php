@@ -29,11 +29,6 @@ class Gamestate
      */
     private $table;
 
-    /**
-     * @var string
-     */
-    private $currentStateId = 'gameSetup';
-
     public function __construct($table)
     {
         $this->table = $table;
@@ -50,11 +45,12 @@ class Gamestate
 
     public function nextState($action = '')
     {
+        $this->table::DbQuery("UPDATE bga_workbench SET `value` = '{$action}' WHERE `key` = 'state_machine' AND `subkey` = 'next_transition'");
     }
 
     public function state(): Array
     {
-        return $this->table->getStateForLabel($this->currentStateId);
+        return $this->table->getCurrentState();
     }
 
     public function changeActivePlayer($player_id)
@@ -104,11 +100,12 @@ abstract class Table extends APP_GameClass
 
     public function checkAction($actionName, $bThrowException = true)
     {
-        // TODO: Implement checkAction() method.
-        return true;
+        $state = $this->gamestate->state();
+        $possibleActions = $state['possibleactions'] ?? [];
+        return in_array($actionName, $possibleActions);
     }
 
-    public $gameStateLabelsToIds = [];
+    public $nonPersistentGameStateLabelsToIds = [];
 
     public function initGameStateLabels($labels)
     {
@@ -116,8 +113,22 @@ abstract class Table extends APP_GameClass
             if (!is_string($label)) {
                 throw new InvalidArgumentException('All labels must be a string');
             }
-            $this->gameStateLabelsToIds[$label] = $id;
+            // Try to store in the DB first, but if this is being called from the constructor, then we can't persist it yet.
+            try {
+                self::DbQuery("INSERT INTO bga_workbench (`key`, `subkey`, `value`) VALUES ('game_state_labels', '{$label}', {$id})");
+            } catch (Exception $e) {
+                $this->nonPersistentGameStateLabelsToIds[$label] = $id;
+            }
         }
+    }
+
+    /** Persist the game state labels to the database (for testing purposes only) */
+    public function persistGameStateLabels()
+    {
+        foreach ($this->nonPersistentGameStateLabelsToIds as $label => $id) {
+            self::DbQuery("INSERT INTO bga_workbench (`key`, `subkey`, `value`) VALUES ('game_state_labels', '{$label}', '{$id}')");
+        }
+        $this->nonPersistentGameStateLabelsToIds = [];
     }
 
     public function setGameStateInitialValue($label, $value)
@@ -125,11 +136,7 @@ abstract class Table extends APP_GameClass
         if (!is_numeric($value)) {
             throw new InvalidArgumentException('The value must be numeric');
         }
-
-        if (!array_key_exists($label, $this->gameStateLabelsToIds)) {
-            throw new InvalidArgumentException(sprintf('The label %s was not defined by initGameStateLabels', $label));
-        }
-        $id = $this->gameStateLabelsToIds[$label];
+        $id = self::getGameStateId($label);
         self::DbQuery("INSERT INTO global (global_id, global_value) VALUES ({$id}, {$value})");
     }
 
@@ -139,10 +146,7 @@ abstract class Table extends APP_GameClass
             throw new InvalidArgumentException('The value must be numeric');
         }
 
-        if (!array_key_exists($label, $this->gameStateLabelsToIds)) {
-            throw new InvalidArgumentException(sprintf('The label %s was not defined by initGameStateLabels', $label));
-        }
-        $id = $this->gameStateLabelsToIds[$label];
+        $id = self::getGameStateId($label);
 
         if (self::getUniqueValueFromDB("SELECT COUNT(*) FROM global WHERE global_id = {$id}") === 0) {
             throw new Exception("The game state value {$label} has not been initialized");
@@ -153,10 +157,7 @@ abstract class Table extends APP_GameClass
 
     public function getGameStateValue($label)
     {
-        if (!array_key_exists($label, $this->gameStateLabelsToIds)) {
-            throw new InvalidArgumentException(sprintf('The label %s was not defined by initGameStateLabels', $label));
-        }
-        $id = $this->gameStateLabelsToIds[$label];
+        $id = self::getGameStateId($label);
 
         if (self::getUniqueValueFromDB("SELECT COUNT(*) FROM global WHERE global_id = {$id}") == 0) {
             throw new Exception("The game state value {$label} (id={$id}) has not been initialized");
@@ -165,7 +166,17 @@ abstract class Table extends APP_GameClass
         return self::getUniqueValueFromDB("SELECT global_value FROM global WHERE global_id = {$id}");
     }
 
-    private function getStatTypeId($targetName)
+    private function getGameStateId($label) {
+        if (array_key_exists($label, $this->nonPersistentGameStateLabelsToIds)) {
+            return $this->nonPersistentGameStateLabelsToIds[$label];
+        }
+        if (self::getUniqueValueFromDB("SELECT COUNT(*) FROM bga_workbench WHERE `key` = 'game_state_labels' AND `subkey` = '{$label}'") == 0) {
+            throw new InvalidArgumentException(sprintf('The label %s was not defined by initGameStateLabels', $label));
+        }
+        return self::getUniqueValueFromDB("SELECT `value` FROM bga_workbench WHERE `key` = 'game_state_labels' AND `subkey` = '{$label}'");
+    }
+
+    private function getStatId($targetName)
     {
         include('stats.inc.php');
         foreach ($stats_type as $type => $stats) {
@@ -180,23 +191,29 @@ abstract class Table extends APP_GameClass
 
     public function initStat($table_or_player, $name, $value, $player_id = null)
     {
-        $typeId = $this->getStatTypeId($name);
-        $sql = 'INSERT INTO stats (stats_type, stats_player_id, stats_value) VALUES ';
+        if ($value === true) {
+            $value = 1;
+        } elseif ($value === false) {
+            $value = 0;
+        }
+
+        $stat_id = $this->getStatId($name);
+        $sql = 'INSERT INTO stats (stats_id, stats_type, stats_player_id, stats_value) VALUES ';
 
         switch ($table_or_player) {
             case 'table':
-                $sql .= sprintf('(%d, NULL, %s)', $typeId, $value);
+                $sql .= sprintf('(%d, "table", NULL, %s)', $stat_id, $value);
                 break;
             case 'player':
                 $players = self::loadPlayersBasicInfos();
                 if ($player_id === null) {
                     $values = [];
                     foreach (array_keys($players) as $id) {
-                        $values[] = "('" . $typeId . "','$id','" . $value . "')";
+                        $values[] = "('" . $stat_id . "','player','$id','" . $value . "')";
                     }
                     $sql .= implode(', ', $values);
                 } else {
-                    $values[] = "('" . $typeId . "','$player_id','" . $value . "')";
+                    $values[] = "('" . $stat_id . "','player','$player_id','" . $value . "')";
                 }
                 break;
             default:
@@ -208,31 +225,31 @@ abstract class Table extends APP_GameClass
 
     public function incStat($delta, $name, $player_id = null)
     {
-        $typeId = $this->getStatTypeId($name);
+        $statId = $this->getStatId($name);
         if ($player_id === null) {
-            self::DbQuery("UPDATE stats SET stats_value = stats_value + {$delta} WHERE stats_type = {$typeId}");
+            self::DbQuery("UPDATE stats SET stats_value = stats_value + {$delta} WHERE stats_type = 'table' AND stats_id = {$statId}");
         } else {
-            self::DbQuery("UPDATE stats SET stats_value = stats_value + {$delta} WHERE stats_type = {$typeId} AND stats_player_id = {$player_id}");
+            self::DbQuery("UPDATE stats SET stats_value = stats_value + {$delta} WHERE stats_type = 'player' AND stats_id = {$statId} AND stats_player_id = {$player_id}");
         }
     }
 
     public function setStat($value, $name, $player_id = null)
     {
-        $typeId = $this->getStatTypeId($name);
+        $statId = $this->getStatId($name);
         if ($player_id === null) {
-            self::DbQuery("UPDATE stats SET stats_value = {$value} WHERE stats_type = {$typeId}");
+            self::DbQuery("UPDATE stats SET stats_value = {$value} WHERE stats_type = 'table' AND stats_id = {$statId}");
         } else {
-            self::DbQuery("UPDATE stats SET stats_value = {$value} WHERE stats_type = {$typeId} AND stats_player_id = {$player_id}");
+            self::DbQuery("UPDATE stats SET stats_value = {$value} WHERE stats_type = 'player' AND stats_id = {$statId} AND stats_player_id = {$player_id}");
         }
     }
 
     public function getStat($name, $player_id = null)
     {
-        $typeId = $this->getStatTypeId($name);
+        $statId = $this->getStatId($name);
         if ($player_id === null) {
-            return self::getUniqueValueFromDB("SELECT stats_value FROM stats WHERE stats_type = ${typeId}");
+            return self::getUniqueValueFromDB("SELECT stats_value FROM stats WHERE stats_type = 'table' AND stats_id = ${statId}");
         }
-        return self::getUniqueValueFromDB("SELECT stats_value FROM stats WHERE stats_type = ${typeId} AND stats_player_id = {$player_id}");
+        return self::getUniqueValueFromDB("SELECT stats_value FROM stats WHERE stats_type = 'player' AND stats_id = ${statId} AND stats_player_id = {$player_id}");
     }
 
     /**
@@ -439,6 +456,26 @@ abstract class Table extends APP_GameClass
             throw new Exception("State not found: ". $id. ". Valid state IDs: ". implode(', ', array_values(self::$statesLabelToId)). ".");
         }
         return self::$statesById[$id];
+    }
+
+    /** Return the name of the upcoming transition (for testing-purposes only). */
+    public function getTransitionName(): string
+    {
+        return self::getUniqueValueFromDB("SELECT `value` FROM bga_workbench WHERE `key` = 'state_machine' AND `subkey` = 'next_transition'");
+    }
+
+    /** Set the ID of the current state and reset the next transition (for testing-purposes only). */
+    public function setStateId($id)
+    {
+        self::DbQuery("UPDATE bga_workbench SET `value` = '{$id}' WHERE `key` = 'state_machine' AND `subkey` = 'current_state_id'");
+        self::DbQuery("UPDATE bga_workbench SET `value` = '' WHERE `key` = 'state_machine' AND `subkey` = 'next_transition'");
+    }
+
+    /** Get the current state (for testing-purposes only). */
+    public function getCurrentState()
+    {
+        $stateId = (int) self::getUniqueValueFromDB("SELECT `value` FROM bga_workbench WHERE `key` = 'state_machine' AND `subkey` = 'current_state_id'");
+        return self::getStateForId($stateId);
     }
 
     /**
