@@ -155,6 +155,14 @@ abstract class Table extends APP_GameClass
         self::DbQuery("UPDATE global SET global_value = {$value} WHERE global_id = {$id}");
     }
 
+    public function incGameStateValue($label, $delta)
+    {
+        if (!is_numeric($delta)) {
+            throw new InvalidArgumentException('The delta must be numeric');
+        }
+        self::setGameStateValue($label, self::getGameStateValue($label) + $delta);
+    }
+
     public function getGameStateValue($label)
     {
         $id = self::getGameStateId($label);
