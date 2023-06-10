@@ -9,30 +9,6 @@ use BGAWorkbench\Project\WorkbenchProjectConfig;
 trait TestHelp
 {
     /**
-     * @var TableInstance
-     */
-    private $table;
-
-    protected function setUp(): void
-    {
-        $this->table = $this->createGameTableInstanceBuilder()
-            ->build()
-            ->createDatabase();
-    }
-
-    /**
-     * @return TableInstanceBuilder
-     */
-    abstract protected function createGameTableInstanceBuilder() : TableInstanceBuilder;
-
-    protected function tearDown(): void
-    {
-        if ($this->table !== null) {
-            $this->table->dropDatabaseAndDisconnect();
-        }
-    }
-
-    /**
      * @var Project|null
      */
     private static $cwdConfig = null;

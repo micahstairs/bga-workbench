@@ -186,8 +186,6 @@ class TableInstance
             }
 
             $nextState = $this->table->getStateForId($nextStateId);
-            $nextStateName = $nextState['name'];
-            error_log("INFO: Advancing to state {$nextStateName}");
             $this->table->setStateId($nextStateId);
 
             if ($nextState['type'] !== 'game' ) {
@@ -200,7 +198,7 @@ class TableInstance
 
     /**
      * @param callable $callable
-     * @return $this
+     * @return self
      */
     public function withDbConnection($callable)
     {
@@ -281,7 +279,7 @@ class TableInstance
     }
 
     /**
-     * @return Table
+     * @return \Table
      */
     public function getTable()
     {
