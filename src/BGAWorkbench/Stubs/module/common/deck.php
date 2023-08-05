@@ -60,7 +60,7 @@ abstract class Deck
      * @param int|string $player_id Which player's hand will the picked card be placed in
      * @return array|null null if location is empty, otherwise indexed array of card id to default card structure (@see Deck::getCard)
      */
-    abstract public function pickCards(int $nbr, string $location, $player_id): ?array
+    abstract public function pickCards(int $nbr, string $location, $player_id): ?array;
 
     /**
      * @see Deck::pickCard but where you can specify which destination location the picked card will be placed at.

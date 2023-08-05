@@ -96,6 +96,19 @@ abstract class Table extends APP_GameClass
 
     protected function activeNextPlayer()
     {
+        $currentPlayerId = self::getActivePlayerId();
+        $players = self::getObjectListFromDB("SELECT player_id, player_no FROM player WHERE player_eliminated = 0 ORDER BY player_no");
+        $players = array_merge($players, $players);
+        $foundCurrentPlayer = false;
+        foreach ($players as $player) {
+            if ($foundCurrentPlayer) {
+                self::stubActivePlayerId($player['player_id']);
+                return;
+            }
+            if ($player['player_id'] == $currentPlayerId) {
+                $foundCurrentPlayer = true;
+            }
+        }
     }
 
     public function checkAction($actionName, $bThrowException = true)
@@ -369,16 +382,11 @@ abstract class Table extends APP_GameClass
     }
 
     /**
-     * @var int
-     */
-    private $activePlayerId;
-
-    /**
      * @return int
      */
     public function getActivePlayerId()
     {
-        return $this->activePlayerId;
+        return self::getUniqueValueFromDB("SELECT `value` FROM bga_workbench WHERE `key` = 'state_machine' AND `subkey` = 'active_player_id'");
     }
 
     /**
@@ -387,7 +395,7 @@ abstract class Table extends APP_GameClass
      */
     public function stubActivePlayerId($activePlayerId)
     {
-        $this->activePlayerId = $activePlayerId;
+        self::DbQuery("UPDATE bga_workbench SET `value` = '{$activePlayerId}' WHERE `key` = 'state_machine' AND `subkey` = 'active_player_id'");
         return $this;
     }
 

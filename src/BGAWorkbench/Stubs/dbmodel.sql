@@ -47,3 +47,4 @@ CREATE TABLE `bga_workbench` (
 
 INSERT INTO `bga_workbench` (`key`, `subkey`, `value`) VALUES ('state_machine', 'current_state_id', '1');
 INSERT INTO `bga_workbench` (`key`, `subkey`, `value`) VALUES ('state_machine', 'next_transition', '');
+INSERT INTO `bga_workbench` (`key`, `subkey`, `value`) VALUES ('state_machine', 'active_player_id', '');
