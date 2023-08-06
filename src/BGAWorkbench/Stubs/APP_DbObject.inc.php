@@ -14,20 +14,30 @@ class APP_DbObject extends APP_Object
      */
     public static function DbQuery($sql)
     {
-        // Haven't yet found equivalent result type of mysqli->query via doctrine
-        $conn = self::getDbConnection();
-        //self::$affectedRows = $conn->executeQuery($sql)->rowCount();
-        $host = $conn->getHost();
-        if (!is_null($conn->getPort())) {
-            $host .= ':' . $conn->getPort();
-        }
-        $miConn = new mysqli($host, $conn->getUsername(), $conn->getPassword(), $conn->getDatabase());
-        $result = $miConn->query($sql);
-        if (!$result) {
-            throw new RuntimeException("QUERY FAILED: ". $miConn->error . " (query: $sql)");
-        }
-        self::$affectedRows = $miConn->affected_rows;
-        return $result;
+        $maxRetries = 3;
+        $retries = 0;
+        do {
+            try {
+                // Haven't yet found equivalent result type of mysqli->query via doctrine
+                $conn = self::getDbConnection();
+                //self::$affectedRows = $conn->executeQuery($sql)->rowCount();
+                $host = $conn->getHost();
+                if (!is_null($conn->getPort())) {
+                    $host .= ':' . $conn->getPort();
+                }
+                $miConn = new mysqli($host, $conn->getUsername(), $conn->getPassword(), $conn->getDatabase());
+                $result = $miConn->query($sql);
+                if (!$result) {
+                    throw new RuntimeException("QUERY FAILED: ". $miConn->error . " (query: $sql)");
+                }
+                self::$affectedRows = $miConn->affected_rows;
+                return $result;
+            } catch (\Doctrine\DBAL\Exception $e) {
+                if (++$retries === $maxRetries) {
+                    throw $e; 
+                }
+            }
+        } while (true);
     }
 
     /**
