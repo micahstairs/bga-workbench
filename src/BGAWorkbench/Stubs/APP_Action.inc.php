@@ -55,6 +55,7 @@ abstract class APP_Action extends APP_DbObject
      */
     public function stubArgs(array $args)
     {
+        $args = array_map(function($value) { return (string) $value; }, $args);
         $this->args = array_merge($this->args, $args);
         return $this;
     }
@@ -66,7 +67,7 @@ abstract class APP_Action extends APP_DbObject
      */
     public function stubArg($name, $value)
     {
-        $this->args[$name] = $value;
+        $this->args[$name] = (string) $value;
         return $this;
     }
 
