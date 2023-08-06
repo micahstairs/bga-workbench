@@ -32,7 +32,7 @@ class APP_DbObject extends APP_Object
                 }
                 self::$affectedRows = $miConn->affected_rows;
                 return $result;
-            } catch (\Doctrine\DBAL\Exception $e) {
+            } catch (Exception $e) {
                 if (++$retries === $maxRetries) {
                     throw $e; 
                 }
