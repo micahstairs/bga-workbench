@@ -34,13 +34,23 @@ class Gamestate
         $this->table = $table;
     }
 
+    public function checkPossibleAction($action)
+    {
+        $state = $this->state();
+        $possibleActions = $state['possibleactions'] ?? [];
+        return in_array($action, $possibleActions);
+    }
+
     public function setAllPlayersMultiactive()
+    {
+    }
+
+    public function setPlayersMultiactive($player_ids, $next_state, $bExclusive = false)
     {
     }
 
     public function setPlayerNonMultiactive($player_id, $next_state)
     {
-        return false;
     }
 
     public function nextState($action = '')
@@ -91,6 +101,10 @@ abstract class Table extends APP_GameClass
     }
 
     public function reloadPlayersBasicInfos()
+    {
+    }
+
+    public function applyDbUpgradeToAllDB($str)
     {
     }
 
