@@ -58,7 +58,7 @@ class Gamestate
         $this->table::DbQuery("UPDATE bga_workbench SET `value` = '{$action}' WHERE `key` = 'state_machine' AND `subkey` = 'next_transition'");
     }
 
-    public function state(): Array
+    public function state(): array
     {
         return $this->table->getCurrentState();
     }
@@ -92,7 +92,8 @@ abstract class Table extends APP_GameClass
     {
     }
 
-    public function getBgaEnvironment(): string {
+    public function getBgaEnvironment(): string
+    {
         return 'studio';
     }
 
@@ -201,7 +202,8 @@ abstract class Table extends APP_GameClass
         return self::getUniqueValueFromDB("SELECT global_value FROM global WHERE global_id = {$id}");
     }
 
-    private function getGameStateId($label) {
+    private function getGameStateId($label)
+    {
         if (array_key_exists($label, $this->nonPersistentGameStateLabelsToIds)) {
             return $this->nonPersistentGameStateLabelsToIds[$label];
         }
@@ -282,16 +284,18 @@ abstract class Table extends APP_GameClass
     {
         $statId = $this->getStatId($name);
         if ($player_id === null) {
-            return self::getUniqueValueFromDB("SELECT stats_value FROM stats WHERE stats_type = 'table' AND stats_id = ${statId}");
+            return self::getUniqueValueFromDB("SELECT stats_value FROM stats WHERE stats_type = 'table' AND stats_id = {$statId}");
         }
-        return self::getUniqueValueFromDB("SELECT stats_value FROM stats WHERE stats_type = 'player' AND stats_id = ${statId} AND stats_player_id = {$player_id}");
+        return self::getUniqueValueFromDB("SELECT stats_value FROM stats WHERE stats_type = 'player' AND stats_id = {$statId} AND stats_player_id = {$player_id}");
     }
 
     /**
      * @param int $player_id
      * @param int $specific_time
      */
-    public function giveExtraTime($player_id, $specific_time = null) {}
+    public function giveExtraTime($player_id, $specific_time = null)
+    {
+    }
 
     /**
      * @return string
@@ -345,9 +349,9 @@ abstract class Table extends APP_GameClass
         }
         $this->notifications[] = [
             'playerId' => $player_id,
-            'type' => $notification_type,
-            'log' => $notification_log,
-            'args' => $notification_args
+            'type'     => $notification_type,
+            'log'      => $notification_log,
+            'args'     => $notification_args
         ];
     }
 
@@ -470,7 +474,7 @@ abstract class Table extends APP_GameClass
     public static function getStateForLabel(string $label)
     {
         if (!isset(self::$statesLabelToId[$label])) {
-            throw new Exception("State not found: ". $label. ". Valid states: ". implode(', ', array_keys(self::$statesLabelToId)). ".");
+            throw new Exception("State not found: " . $label . ". Valid states: " . implode(', ', array_keys(self::$statesLabelToId)) . ".");
         }
 
         return self::$statesById[self::$statesLabelToId[$label]];
@@ -483,7 +487,7 @@ abstract class Table extends APP_GameClass
     public static function getStateForId(string $id)
     {
         if (!isset(self::$statesById[$id])) {
-            throw new Exception("State not found: ". $id. ". Valid state IDs: ". implode(', ', array_values(self::$statesLabelToId)). ".");
+            throw new Exception("State not found: " . $id . ". Valid state IDs: " . implode(', ', array_values(self::$statesLabelToId)) . ".");
         }
         return self::$statesById[$id];
     }

@@ -11,7 +11,7 @@ class FileUtils
      * @param \SplFileInfo $file
      * @return SplFileInfo
      */
-    public static function createRelativeFileFromExisting(\SplFileInfo $directory, \SplFileInfo $file) : SplFileInfo
+    public static function createRelativeFileFromExisting(\SplFileInfo $directory, \SplFileInfo $file): SplFileInfo
     {
         if (strpos($file->getRealPath(), $directory->getRealPath()) !== 0) {
             throw new \InvalidArgumentException("File {$file} not within {$directory}");
@@ -30,7 +30,7 @@ class FileUtils
      * @param string $subPath
      * @return SplFileInfo
      */
-    public static function createRelativeFileFromSubPath(\SplFileInfo $directory, $subPath) : SplFileInfo
+    public static function createRelativeFileFromSubPath(\SplFileInfo $directory, $subPath): SplFileInfo
     {
         return new SplFileInfo(self::joinPath($directory, $subPath), dirname($subPath), $subPath);
     }
@@ -54,6 +54,6 @@ class FileUtils
      */
     public static function joinPathToFileInfo()
     {
-        return new \SplFileInfo(call_user_func_array(['self', 'joinPath'], func_get_args()));
+        return new \SplFileInfo(call_user_func_array([__CLASS__, 'joinPath'], func_get_args()));
     }
 }
