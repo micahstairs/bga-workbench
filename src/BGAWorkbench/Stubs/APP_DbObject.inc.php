@@ -28,13 +28,13 @@ class APP_DbObject extends APP_Object
                 $miConn = new mysqli($host, $conn->getUsername(), $conn->getPassword(), $conn->getDatabase());
                 $result = $miConn->query($sql);
                 if (!$result) {
-                    throw new RuntimeException("QUERY FAILED: ". $miConn->error . " (query: $sql)");
+                    throw new RuntimeException("QUERY FAILED: " . $miConn->error . " (query: $sql)");
                 }
                 self::$affectedRows = $miConn->affected_rows;
                 return $result;
             } catch (Exception $e) {
                 if (++$retries === $maxRetries) {
-                    throw $e; 
+                    throw $e;
                 }
             }
         } while (true);
@@ -53,7 +53,7 @@ class APP_DbObject extends APP_Object
      * @param boolean $bSingleValue
      * @return array
      */
-    protected function getCollectionFromDB($sql, $bSingleValue = false)
+    public function getCollectionFromDB($sql, $bSingleValue = false)
     {
         $rows = self::getObjectListFromDB($sql);
         $result = array();
@@ -73,7 +73,7 @@ class APP_DbObject extends APP_Object
      * @param $sql
      * @return array
      */
-    protected function getNonEmptyCollectionFromDB($sql)
+    public function getNonEmptyCollectionFromDB($sql)
     {
         $rows = self::getCollectionFromDB($sql);
         if (empty($rows)) {
@@ -87,7 +87,7 @@ class APP_DbObject extends APP_Object
      * @param boolean $bUniqueValue
      * @return array
      */
-    protected static function getObjectListFromDB($sql, $bUniqueValue = false)
+    public static function getObjectListFromDB($sql, $bUniqueValue = false)
     {
         $rows = self::getDbConnection()->fetchAll($sql);
         if ($bUniqueValue) {
@@ -105,7 +105,7 @@ class APP_DbObject extends APP_Object
      * @return array
      * @throws BgaSystemException
      */
-    protected function getNonEmptyObjectFromDB($sql)
+    public function getNonEmptyObjectFromDB($sql)
     {
         $rows = $this->getObjectListFromDB($sql);
         if (count($rows) !== 1) {
@@ -119,7 +119,7 @@ class APP_DbObject extends APP_Object
      * @param string $sql
      * @return mixed
      */
-    protected static function getUniqueValueFromDB($sql)
+    public static function getUniqueValueFromDB($sql)
     {
         // TODO: Throw exception if not unique
         $rows = self::getDbConnection()->fetchArray($sql);
@@ -133,7 +133,7 @@ class APP_DbObject extends APP_Object
         return $rows[0];
     }
 
-    protected function getObjectFromDB($sql)
+    public function getObjectFromDB($sql)
     {
         $rows = self::getDbConnection()->fetchAllAssociative($sql);
         if (empty($rows)) {
@@ -144,7 +144,7 @@ class APP_DbObject extends APP_Object
         return $rows[0];
     }
 
-    protected static function escapeStringForDB($string)
+    public static function escapeStringForDB($string)
     {
         $quoted = self::$connection->quote($string);
         return substr($quoted, 1, -1);
