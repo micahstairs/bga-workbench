@@ -3,3 +3,4 @@
 /resources/test-projects/simple-composer-example/build
 /resources/test-projects/simple-composer-example/dist
 /.idea
+.phpunit.result.cache

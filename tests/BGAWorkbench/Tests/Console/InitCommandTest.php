@@ -23,7 +23,7 @@ class InitCommandTest extends TestCase
      */
     private $tester;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         $this->workingDir = WorkingDirectory::createTemp();
         chdir($this->workingDir->getPathname());
@@ -39,6 +39,8 @@ class InitCommandTest extends TestCase
     {
         $this->tester->setInputs([
             'y',
+
+            'mygame',
 
             'dbname',
             'dbuser',
@@ -57,6 +59,7 @@ class InitCommandTest extends TestCase
                 new WorkbenchProjectConfig(
                     $this->workingDir->getFileInfo(),
                     true,
+                    'mygame',
                     [],
                     'dbname',
                     'dbuser',

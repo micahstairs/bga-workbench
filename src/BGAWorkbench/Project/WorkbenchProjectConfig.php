@@ -2,8 +2,6 @@
 
 namespace BGAWorkbench\Project;
 
-use BGAWorkbench\Utils;
-use BGAWorkbench\Utils\FileUtils;
 use PhpOption\Option;
 
 class WorkbenchProjectConfig
@@ -17,6 +15,11 @@ class WorkbenchProjectConfig
      * @var boolean
      */
     private $useComposer;
+
+    /**
+     * @var string
+     */
+    private $gameName;
 
     /**
      * @var string[]
@@ -51,6 +54,7 @@ class WorkbenchProjectConfig
     /**
      * @param \SplFileInfo $directory
      * @param bool $useComposer
+     * @param string $gameName
      * @param string[] $extraSrcPaths
      * @param string $testDbNamePrefix
      * @param string $testDbUsername
@@ -61,6 +65,7 @@ class WorkbenchProjectConfig
     public function __construct(
         \SplFileInfo $directory,
         bool $useComposer,
+        string $gameName,
         array $extraSrcPaths,
         string $testDbNamePrefix,
         string $testDbUsername,
@@ -71,6 +76,7 @@ class WorkbenchProjectConfig
 
         $this->directory = $directory;
         $this->useComposer = $useComposer;
+        $this->gameName = $gameName;
         $this->extraSrcPaths = $extraSrcPaths;
         $this->testDbNamePrefix = $testDbNamePrefix;
         $this->testDbUsername = $testDbUsername;
@@ -82,7 +88,7 @@ class WorkbenchProjectConfig
     /**
      * @return string
      */
-    public function getTestDbNamePrefix() : string
+    public function getTestDbNamePrefix(): string
     {
         return $this->testDbNamePrefix;
     }
@@ -90,7 +96,7 @@ class WorkbenchProjectConfig
     /**
      * @return string
      */
-    public function getTestDbUsername() : string
+    public function getTestDbUsername(): string
     {
         return $this->testDbUsername;
     }
@@ -98,7 +104,7 @@ class WorkbenchProjectConfig
     /**
      * @return string
      */
-    public function getTestDbPassword() : string
+    public function getTestDbPassword(): string
     {
         return $this->testDbPassword;
     }
@@ -106,7 +112,7 @@ class WorkbenchProjectConfig
     /**
      * @return string
      */
-    public function getLinterPhpBin() : string
+    public function getLinterPhpBin(): string
     {
         return $this->linterPhpBin;
     }
@@ -114,7 +120,7 @@ class WorkbenchProjectConfig
     /**
      * @return Option
      */
-    public function getDeployConfig() : Option
+    public function getDeployConfig(): Option
     {
         return $this->sftpConfig;
     }
@@ -122,9 +128,17 @@ class WorkbenchProjectConfig
     /**
      * @return bool
      */
-    public function getUseComposer() : bool
+    public function getUseComposer(): bool
     {
         return $this->useComposer;
+    }
+
+    /**
+     * @return string
+     */
+    public function getGameName(): string
+    {
+        return $this->gameName;
     }
 
     /**
@@ -138,26 +152,11 @@ class WorkbenchProjectConfig
     /**
      * @return Project
      */
-    public function loadProject() : Project
+    public function loadProject(): Project
     {
-        $versionFile = FileUtils::joinPathToFileInfo($this->directory, 'version.php');
-
-        $GAME_VERSION_PREFIX = 'game_version_';
-        $variableName = Utils::getVariableNameFromFile(
-            $versionFile,
-            function ($name) use ($GAME_VERSION_PREFIX) {
-                return strpos($name, $GAME_VERSION_PREFIX) === 0;
-            }
-        )->getOrThrow(
-            new \InvalidArgumentException(
-                "File {$versionFile->getPathname()} missing version variable {$GAME_VERSION_PREFIX}_%%project_name%%"
-            )
-        );
-        $projectName = substr($variableName, strlen($GAME_VERSION_PREFIX));
-
         if ($this->useComposer) {
-            return new ComposerProject($this->directory, $projectName, $this->extraSrcPaths);
+            return new ComposerProject($this->directory, $this->gameName, $this->extraSrcPaths);
         }
-        return new Project($this->directory, $projectName);
+        return new Project($this->directory, $this->gameName);
     }
 }

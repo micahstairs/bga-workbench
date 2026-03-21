@@ -39,10 +39,14 @@ class InitCommand extends Command
             $this->testDbConfig(
                 $input,
                 $output,
-                $this->useComposerConfig(
+                $this->gameNameConfig(
                     $input,
                     $output,
-                    []
+                    $this->useComposerConfig(
+                        $input,
+                        $output,
+                        []
+                    )
                 )
             )
         );
@@ -57,7 +61,7 @@ class InitCommand extends Command
      * @param array $config
      * @return array
      */
-    private function useComposerConfig(InputInterface $input, OutputInterface $output, array $config) : array
+    private function useComposerConfig(InputInterface $input, OutputInterface $output, array $config): array
     {
         $question = new ChoiceQuestion(
             'Is this project using composer for dependencies? (if you don\'t know what composer is then choose no)',
@@ -75,7 +79,27 @@ class InitCommand extends Command
      * @param array $config
      * @return array
      */
-    private function testDbConfig(InputInterface $input, OutputInterface $output, array $config) : array
+    private function gameNameConfig(InputInterface $input, OutputInterface $output, array $config): array
+    {
+        $helper = $this->getHelper('question');
+        $gameName = $helper->ask(
+            $input,
+            $output,
+            new Question(
+                'BGA game internal name (as in your {name}.game.php file, e.g. "chess"): '
+            )
+        );
+
+        return array_merge($config, ['gameName' => $gameName]);
+    }
+
+    /**
+     * @param InputInterface $input
+     * @param OutputInterface $output
+     * @param array $config
+     * @return array
+     */
+    private function testDbConfig(InputInterface $input, OutputInterface $output, array $config): array
     {
         $helper = $this->getHelper('question');
 
@@ -88,8 +112,8 @@ class InitCommand extends Command
             [
                 'testDb' => [
                     'namePrefix' => $namePrefix,
-                    'user' => $user,
-                    'pass' => $pass
+                    'user'       => $user,
+                    'pass'       => $pass
                 ]
             ]
         );
@@ -101,7 +125,7 @@ class InitCommand extends Command
      * @param array $config
      * @return array
      */
-    private function deployConfig(InputInterface $input, OutputInterface $output, array $config) : array
+    private function deployConfig(InputInterface $input, OutputInterface $output, array $config): array
     {
         $helper = $this->getHelper('question');
 

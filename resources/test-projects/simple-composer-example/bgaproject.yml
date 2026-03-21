@@ -1,4 +1,5 @@
 useComposer: true
+gameName: example
 
 extraSrc:
   - src/SimpleComposerExample

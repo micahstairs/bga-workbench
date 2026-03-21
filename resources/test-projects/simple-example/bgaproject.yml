@@ -1,4 +1,5 @@
 useComposer: false
+gameName: example
 
 testDb:
   namePrefix: example_test_

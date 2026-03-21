@@ -5,21 +5,18 @@
 
 A set of tools to work with [BoardGameArena](https://boardgamearena.com/) projects.
 
-   * [Installation](#installation)
-   * [Initialise BGA Project](#initialise-bga-project)
-   * [Deploying to BGA Studio](#deploying-to-bga-studio)
-   * [Compiling composer projects](#compiling-composer-projects)
-   * [Testing utilities](#testing-utilities)
+- [Installation](#installation)
+- [Initialise BGA Project](#initialise-bga-project)
+- [Deploying to BGA Studio](#deploying-to-bga-studio)
+- [Compiling composer projects](#compiling-composer-projects)
+- [Testing utilities](#testing-utilities)
 
- 
-   * [Projects Using BGA Workbench](#projects-using-bga-workbench)
+- [Projects Using BGA Workbench](#projects-using-bga-workbench)
 
- 
-   * [Development](#development)
-      * [Requirements](#requirements)
-      * [Setting up Developer Machine](#setting-up-developer-machine)
-      * [Running tests](#running-tests)
-
+- [Development](#development)
+  - [Requirements](#requirements)
+  - [Setting up Developer Machine](#setting-up-developer-machine)
+  - [Running tests](#running-tests)
 
 ## Installation
 
@@ -30,26 +27,25 @@ composer require --dev dholmes/bga-workbench
 ```
 
 Via Docker:
+
 ```bash
 docker build -t bgawb .
 alias bgawb="docker run --rm -v $PWD:/data -w /data bgawb"
 ```
+
 (this last line should be set in your ~/.bashrc to keep the alias working in a new terminal)
 
-
-To set up your project to work with BGA Workbench you need to have a `bgaproject.yml` file in the root. To generate one 
-see the [`bgawb init` command](#initialise-bga-project).
-
+To set up your project to work with BGA Workbench you need to have a `bgaproject.yml` file in the root. To generate one
+see the [`bgawb init` command](#initialise-bga-project). The config must include `gameName`: the BGA internal game id (the prefix used in `{gameName}.game.php` and related files).
 
 ## Initialise BGA Project
 
-Once you've installed bgawb you can run the below command to interactively create a `bgaproject.yml` file in your 
+Once you've installed bgawb you can run the below command to interactively create a `bgaproject.yml` file in your
 current directory.
 
 ```bash
 bgawb init
 ```
-
 
 ## Deploying to BGA Studio
 
@@ -65,14 +61,12 @@ Watches development files and deploys them as they change.
 bgawb build --deploy --watch
 ```
 
-
 ## Compiling composer projects
 
-The Board Game Arena production framework/environment doesn't natively support a [Composer](https://getcomposer.org/) 
-project setup. By having `useComposer: true` set in your `bgaproject.yml` file, the 
-[`bgawb build`](Deploying to BGA Studio) command will merge all non-dev composer dependencies inline into your .game.php 
-file before deploying. 
-
+The Board Game Arena production framework/environment doesn't natively support a [Composer](https://getcomposer.org/)
+project setup. By having `useComposer: true` set in your `bgaproject.yml` file, the
+[`bgawb build`](Deploying to BGA Studio) command will merge all non-dev composer dependencies inline into your .game.php
+file before deploying.
 
 ## Testing Utilities
 
@@ -80,8 +74,8 @@ Some testing utilities are provided to help test various parts of a standard BGA
 
 ### The Validate Command
 
-Will run some basic checks on your project setup. e.g. whether you have the required files to function on the BGA 
-platform (`.game.php`, `.action.php`, etc), whether your `states.inc.php` file is valid, etc. 
+Will run some basic checks on your project setup. e.g. whether you have the required files to function on the BGA
+platform (`.game.php`, `.action.php`, etc), whether your `states.inc.php` file is valid, etc.
 
 ```bash
 bgawb validate
@@ -89,7 +83,7 @@ bgawb validate
 
 ### PHPUnit TestHelp trait
 
-Including this trait and implementing the `createGameTableInstanceBuilder` method will set up and tear down a game table 
+Including this trait and implementing the `createGameTableInstanceBuilder` method will set up and tear down a game table
 instance for each test that is run. Note that this makes use of the `setUp` and `tearDown` PHPUnit hooks
 
 ```php
@@ -105,7 +99,7 @@ use BGAWorkbench\Utils;
 class ChooseAttackTest extends TestCase
 {
     use TestHelp;
-    
+
     protected function createGameTableInstanceBuilder() : TableInstanceBuilder
     {
         return $this->gameTableInstanceBuilder()
@@ -115,7 +109,7 @@ class ChooseAttackTest extends TestCase
                 77 => ['player_color' => '00ff00']
             ]);
     }
-    
+
     public function testAction()
     {
         $action = $this->table
@@ -123,9 +117,9 @@ class ChooseAttackTest extends TestCase
             ->withDbConnection(function (Connection $db) {
                 $db->exec('INSERT battlefield_card (player_id, type, x, y) VALUES (' .
                     join('), (', [
-                        [77, '"infantry"', 0, -1],  
-                        [66, '"infantry"', 0, 1],  
-                        [66, '"artillery"', 6, 1],  
+                        [77, '"infantry"', 0, -1],
+                        [66, '"infantry"', 0, 1],
+                        [66, '"artillery"', 6, 1],
                     ])
                 . ')');
             })
@@ -134,20 +128,20 @@ class ChooseAttackTest extends TestCase
             ->stubArgs(['x' => 5, 'y' => 5]);
 
         $action->chooseAttack();
-        
+
         // TODO: Run some asserts on the db
     }
-    
+
     public function testStateFunc()
     {
         $game = $this->table
             ->setupNewGame()
             ->createGameInstanceWithNoBoundedPlayer()
             ->stubActivePlayerId(66);
-        
+
         $game->stNextPlayer();
     }
-    
+
     public function testGetAllDatas()
     {
         $game = $this->table
@@ -161,27 +155,25 @@ class ChooseAttackTest extends TestCase
             ->createGameInstanceForCurrentPlayer(66);
 
         $datas = Utils::callProtectedMethod($game, 'getAllDatas');
-        
+
         // TODO: Some asserts on $datas
     }
 }
 ```
 
-
 ## Projects Using BGA Workbench
 
- - [The Battle for Hill 218](https://github.com/danielholmes/battle-for-hill-218)
- - [Tablut](https://github.com/Lucas-C/tablut)
-
+- [The Battle for Hill 218](https://github.com/danielholmes/battle-for-hill-218)
+- [Tablut](https://github.com/Lucas-C/tablut)
 
 ## Development
 
-i.e. if you want to make some changes to the BGA Workbench project. This is not required for using the library in your 
+i.e. if you want to make some changes to the BGA Workbench project. This is not required for using the library in your
 own project.
 
 ### Requirements
 
- - [Vagrant](https://www.vagrantup.com/)
+- [Vagrant](https://www.vagrantup.com/)
 
 ### Setting up Developer Machine
 
@@ -198,6 +190,6 @@ composer test
 
 ### Publishing a New Version
 
- 1. Add a release/tag on github with the version number.
- 2. Go to the packagist url and click "Update": <https://packagist.org/packages/dholmes/bga-workbench>. This should be 
+1.  Add a release/tag on github with the version number.
+2.  Go to the packagist url and click "Update": <https://packagist.org/packages/dholmes/bga-workbench>. This should be
     done automatically though if just left.

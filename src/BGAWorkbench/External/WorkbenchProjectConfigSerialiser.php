@@ -20,7 +20,7 @@ class WorkbenchProjectConfigSerialiser
      * @param \SplFileInfo $directory
      * @return bool
      */
-    public static function configExists(\SplFileInfo $directory) : bool
+    public static function configExists(\SplFileInfo $directory): bool
     {
         return self::getConfigContents($directory)->isDefined();
     }
@@ -38,10 +38,10 @@ class WorkbenchProjectConfigSerialiser
      * @param \SplFileInfo $directory
      * @return Option
      */
-    private static function getConfigContents(\SplFileInfo $directory) : Option
+    private static function getConfigContents(\SplFileInfo $directory): Option
     {
         $content = new Some(@file_get_contents(self::getConfigFileInfo($directory)));
-        return $content->filter(function($content) {
+        return $content->filter(function ($content) {
             return $content !== false;
         });
     }
@@ -49,7 +49,7 @@ class WorkbenchProjectConfigSerialiser
     /**
      * @return WorkbenchProjectConfig
      */
-    public static function readFromCwd() : WorkbenchProjectConfig
+    public static function readFromCwd(): WorkbenchProjectConfig
     {
         return self::readFromDirectory(new \SplFileInfo(getcwd()));
     }
@@ -58,7 +58,7 @@ class WorkbenchProjectConfigSerialiser
      * @param \SplFileInfo $directory
      * @return WorkbenchProjectConfig
      */
-    public static function readFromDirectory(\SplFileInfo $directory) : WorkbenchProjectConfig
+    public static function readFromDirectory(\SplFileInfo $directory): WorkbenchProjectConfig
     {
         $rawContent = self::getConfigContents($directory)
             ->getOrThrow(new \InvalidArgumentException("Couldn't read project config in {$directory->getPathname()}"));
@@ -77,13 +77,14 @@ class WorkbenchProjectConfigSerialiser
      * @param array $rawConfig
      * @return WorkbenchProjectConfig
      */
-    private static function read(\SplFileInfo $directory, array $rawConfig) : WorkbenchProjectConfig
+    private static function read(\SplFileInfo $directory, array $rawConfig): WorkbenchProjectConfig
     {
         $processor = new Processor();
         $processed = $processor->processConfiguration(new ConfigFileConfiguration(), [$rawConfig]);
         return new WorkbenchProjectConfig(
             $directory,
             $processed['useComposer'],
+            $processed['gameName'],
             $processed['extraSrc'],
             $processed['testDb']['namePrefix'],
             $processed['testDb']['user'],

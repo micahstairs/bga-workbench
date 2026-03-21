@@ -4,7 +4,6 @@ namespace BGAWorkbench\Tests;
 
 use BGAWorkbench\Project\Project;
 use BGAWorkbench\Test\Fixtures;
-use PhpOption\Some;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Finder\SplFileInfo;
 use Functional as F;
@@ -16,7 +15,7 @@ class ProjectTest extends TestCase
      */
     private $project;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         $this->project = Fixtures::loadTestProject('simple-example');
     }
@@ -40,8 +39,7 @@ class ProjectTest extends TestCase
                         'material.inc.php',
                         'gameoptions.inc.php',
                         'gameinfos.inc.php',
-                        'dbmodel.sql',
-                        'version.php'
+                        'dbmodel.sql'
                     ],
                     function ($path) {
                         return $this->project->absoluteToProjectRelativeFile(
@@ -76,8 +74,7 @@ class ProjectTest extends TestCase
                         'material.inc.php',
                         'gameoptions.inc.php',
                         'gameinfos.inc.php',
-                        'dbmodel.sql',
-                        'version.php'
+                        'dbmodel.sql'
                     ],
                     function ($path) {
                         return $this->project->absoluteToProjectRelativeFile(
@@ -93,10 +90,9 @@ class ProjectTest extends TestCase
 
     public function testGetFileVariableValue()
     {
-        assertThat(
-            $this->project->getFileVariableValue('version.php', 'game_version_example'),
-            equalTo(new Some('999999-9999'))
-        );
+        $gameinfos = $this->project->getFileVariableValue('gameinfos.inc.php', 'gameinfos');
+        assertThat($gameinfos->isDefined(), equalTo(true));
+        assertThat($gameinfos->get()['game_name'], equalTo('The Battle for Hill 218'));
     }
 
     public function testAbsoluteToProjectRelativeFile()
@@ -112,7 +108,8 @@ class ProjectTest extends TestCase
                 new SplFileInfo(
                     $fullPath,
                     'img',
-                    'img' . DIRECTORY_SEPARATOR . 'game_box.png')
+                    'img' . DIRECTORY_SEPARATOR . 'game_box.png'
+                )
             )
         );
     }
