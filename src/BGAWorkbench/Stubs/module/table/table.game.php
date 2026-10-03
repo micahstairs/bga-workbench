@@ -454,6 +454,9 @@ abstract class Table extends APP_GameClass
      */
     public static function stubStates(array $states)
     {
+        
+$states += [1 => ['name' => 'gameSetup', 'type' => 'manager', 'action' => 'stGameSetup', 'transitions' => ['' => 2]], 99 => ['name' => 'gameEnd', 'type' => 'manager', 'action' => 'stGameEnd', 'args' => 'argGameEnd']];
+
         self::$statesById = $states;
         self::$statesLabelToId = array_combine(
             array_map(
