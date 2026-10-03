@@ -215,7 +215,7 @@ abstract class Table extends APP_GameClass
 
     private function getStatId($targetName)
     {
-        include('stats.inc.php');
+        $stats_type = json_decode(file_get_contents('stats.jsonc'), true);
         foreach ($stats_type as $type => $stats) {
             foreach ($stats as $name => $stat) {
                 if ($name === $targetName) {
@@ -454,6 +454,9 @@ abstract class Table extends APP_GameClass
      */
     public static function stubStates(array $states)
     {
+        
+$states += [1 => ['name' => 'gameSetup', 'type' => 'manager', 'action' => 'stGameSetup', 'transitions' => ['' => 2]], 99 => ['name' => 'gameEnd', 'type' => 'manager', 'action' => 'stGameEnd', 'args' => 'argGameEnd']];
+
         self::$statesById = $states;
         self::$statesLabelToId = array_combine(
             array_map(
