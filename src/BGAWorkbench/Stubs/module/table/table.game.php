@@ -215,7 +215,7 @@ abstract class Table extends APP_GameClass
 
     private function getStatId($targetName)
     {
-        include('stats.inc.php');
+        $stats_type = json_decode(file_get_contents('stats.jsonc'), true);
         foreach ($stats_type as $type => $stats) {
             foreach ($stats as $name => $stat) {
                 if ($name === $targetName) {
