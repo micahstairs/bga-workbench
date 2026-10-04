@@ -1,0 +1,29 @@
+name: DB connection lifecycle
+on:
+  pull_request:
+    branches: [master]
+  push:
+    branches: [master]
+jobs:
+  connection-lifecycle:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: true
+        ports: [3306]
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mysqli, pdo_mysql
+      - run: composer install --no-interaction --prefer-dist
+      - name: Check DB connection lifecycle
+        run: php tests/connection-lifecycle/run.php
+        env:
+          DB_HOST: 127.0.0.1
+          DB_PORT: ${{ job.services.mysql.ports[3306] }}
+          DB_USERNAME: root
