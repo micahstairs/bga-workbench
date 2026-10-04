@@ -163,6 +163,10 @@ class DatabaseInstance
 
     public function disconnect()
     {
+        // APP_DbObject owns the extra mysqli handle used by DbQuery.
+        if (class_exists('APP_DbObject', false)) {
+            \APP_DbObject::closeDbQueryConnection($this->connection);
+        }
         if ($this->connection !== null) {
             $this->connection->close();
         }
