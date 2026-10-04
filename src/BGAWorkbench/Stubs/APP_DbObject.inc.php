@@ -14,30 +14,61 @@ class APP_DbObject extends APP_Object
      */
     public static function DbQuery($sql)
     {
-        $maxRetries = 3;
-        $retries = 0;
-        do {
-            try {
-                // Haven't yet found equivalent result type of mysqli->query via doctrine
+        try {
+            if (self::$mysqliConnection === null) {
                 $conn = self::getDbConnection();
-                //self::$affectedRows = $conn->executeQuery($sql)->rowCount();
-                $host = $conn->getHost();
-                if (!is_null($conn->getPort())) {
-                    $host .= ':' . $conn->getPort();
-                }
-                $miConn = new mysqli($host, $conn->getUsername(), $conn->getPassword(), $conn->getDatabase());
-                $result = $miConn->query($sql);
-                if (!$result) {
-                    throw new RuntimeException("QUERY FAILED: " . $miConn->error . " (query: $sql)");
-                }
-                self::$affectedRows = $miConn->affected_rows;
-                return $result;
-            } catch (Exception $e) {
-                if (++$retries === $maxRetries) {
-                    throw $e;
-                }
+                self::$mysqliConnection = new mysqli(
+                    $conn->getHost(),
+                    $conn->getUsername(),
+                    $conn->getPassword(),
+                    $conn->getDatabase(),
+                    $conn->getPort() ?: 3306
+                );
             }
-        } while (true);
+            $result = self::$mysqliConnection->query($sql);
+            if ($result === false) {
+                throw new RuntimeException("QUERY FAILED: " . self::$mysqliConnection->error);
+            }
+            self::$affectedRows = self::$mysqliConnection->affected_rows;
+            return $result;
+        } catch (Exception $e) {
+            // Do not retry writes: the server may have applied one before disconnecting.
+            if ((int) $e->getCode() === 1040) {
+                self::logConnectionDiagnostics();
+            }
+            self::closeDbQueryConnection();
+            throw $e;
+        }
+    }
+
+    /** One mysqli connection for the currently bound test database. */
+    private static $mysqliConnection;
+
+    public static function closeDbQueryConnection(Connection $owner = null)
+    {
+        if ($owner !== null && $owner !== self::$connection) {
+            return;
+        }
+        if (self::$mysqliConnection !== null) {
+            self::$mysqliConnection->close();
+            self::$mysqliConnection = null;
+        }
+    }
+
+    private static function logConnectionDiagnostics()
+    {
+        try {
+            $conn = self::getDbConnection();
+            $diagnostics = [
+                'limits' => $conn->fetchAll("SHOW VARIABLES LIKE 'max_connections'"),
+                'status' => $conn->fetchAll("SHOW GLOBAL STATUS WHERE Variable_name IN ('Threads_connected', 'Max_used_connections')"),
+                // Only connection metadata, never SQL text or credentials.
+                'connections' => $conn->fetchAll("SELECT ID, DB, COMMAND, TIME FROM information_schema.PROCESSLIST"),
+            ];
+            error_log('BGA Workbench connection diagnostics: ' . json_encode($diagnostics));
+        } catch (Exception $ignored) {
+            error_log('BGA Workbench connection diagnostics unavailable');
+        }
     }
 
     /**
@@ -160,6 +191,10 @@ class APP_DbObject extends APP_Object
      */
     public static function setDbConnection(Connection $connection)
     {
+        if (self::$connection !== $connection) {
+            self::closeDbQueryConnection();
+            self::$affectedRows = 0;
+        }
         self::$connection = $connection;
     }
 
